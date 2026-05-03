@@ -1,68 +1,118 @@
-<!doctype html>
-<html lang="id" class="h-full">
+<!DOCTYPE html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Eksperimen Celah Ganda</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['DM Sans', 'sans-serif'], mono: ['Space Mono', 'monospace'] },
+          colors: { 
+            bgDark: '#0a0f1c', 
+            cardDark: 'rgba(17, 24, 39, 0.75)', 
+            accent: '#38bdf8' 
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    html, body { height: 100%; margin: 0; background-color: #0f172a; color: #e2e8f0; }
-    body { font-family: 'DM Sans', sans-serif; }
-    .mono { font-family: 'Space Mono', monospace; }
-    .slider-track { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #334155; outline: none; }
-    .slider-track::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #38bdf8; cursor: pointer; border: 2px solid #fff; }
-    .slider-track::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #38bdf8; cursor: pointer; border: 2px solid #fff; }
-    .card-glass { background: rgba(30,41,59,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(100,116,139,0.3); }
-    canvas { background: #000; border-radius: 8px; width: 100%; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    body { background-color: #0a0f1c; color: #e2e8f0; margin: 0; height: 100vh; overflow-x: hidden; }
+    
+    /* Efek Kaca (Glassmorphism) untuk Kartu */
+    .glass-card {
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(56, 189, 248, 0.15);
+      border-radius: 1rem;
+    }
+
+    /* Kustomisasi Slider */
+    .custom-slider { -webkit-appearance: none; width: 100%; height: 6px; background: #334155; border-radius: 4px; outline: none; }
+    .custom-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 18px; height: 18px; background: #38bdf8;
+      border-radius: 50%; cursor: pointer; border: 2px solid #fff; transition: 0.2s;
+    }
+    .custom-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    
+    /* Kustomisasi Canvas */
+    canvas { background-color: #000; border-radius: 0.75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.5); width: 100%; height: auto; }
   </style>
 </head>
-<body class="h-full overflow-auto p-4 flex flex-col items-center">
-  <header class="text-center py-6 w-full max-w-6xl">
-    <h1 class="text-3xl md:text-4xl font-bold text-sky-400 mb-2">Eksperimen Celah Ganda</h1>
-    <p class="text-slate-400 text-sm">Simulasi gelombang dan partikel (Interferensi Young)</p>
+<body class="py-6 px-4 md:px-8 flex flex-col items-center">
+
+  <header class="text-center mb-8 w-full max-w-7xl">
+    <h1 class="text-3xl md:text-4xl font-bold text-accent mb-2">Eksperimen Celah Ganda</h1>
+    <p class="text-slate-400 text-sm md:text-base">Membuktikan Sifat Dualisme Gelombang-Partikel Cahaya</p>
   </header>
 
-  <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-4 gap-6 pb-10">
+  <main class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-4 gap-6">
     
-    <div class="card-glass p-5 rounded-xl space-y-6 lg:col-span-1">
+    <div class="glass-card p-5 lg:col-span-1 space-y-6 flex flex-col h-full">
+      <h2 class="text-lg font-bold text-white flex items-center gap-2 mb-2">
+        <i data-lucide="sliders-horizontal" class="w-5 h-5 text-accent"></i> Pengaturan
+      </h2>
+
       <div>
-        <label class="block text-sm font-semibold text-sky-400 mb-2 flex items-center gap-2">
-          <i data-lucide="waves" class="w-4 h-4"></i> Mode Emisi
-        </label>
-        <div class="flex bg-slate-800 rounded-lg p-1">
-          <button id="btnWave" class="flex-1 py-1.5 text-sm font-medium rounded bg-sky-500 text-slate-900 transition-all">Gelombang</button>
-          <button id="btnParticle" class="flex-1 py-1.5 text-sm font-medium rounded text-slate-400 hover:text-white transition-all">Partikel</button>
+        <label class="block text-sm font-semibold text-slate-300 mb-3">Mode Tembakan</label>
+        <div class="flex bg-slate-800 p-1 rounded-lg">
+          <button id="btnWave" class="flex-1 py-2 text-sm font-bold rounded-md bg-accent text-slate-900 transition-all">Gelombang</button>
+          <button id="btnParticle" class="flex-1 py-2 text-sm font-bold rounded-md text-slate-400 hover:text-white transition-all">Partikel</button>
         </div>
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-sky-400 mb-2">Jarak Antar Celah (d)</label>
-        <input type="range" id="slitSep" min="20" max="80" value="40" class="slider-track">
+        <div class="flex justify-between items-center mb-2">
+          <label class="text-sm font-semibold text-slate-300">Jarak Celah (d)</label>
+          <span id="valSlit" class="font-mono text-xs text-accent">40 nm</span>
+        </div>
+        <input type="range" id="sliderSlit" min="20" max="80" value="40" class="custom-slider">
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-sky-400 mb-2">Panjang Gelombang (λ)</label>
-        <input type="range" id="wavelength" min="10" max="40" value="20" class="slider-track">
+        <div class="flex justify-between items-center mb-2">
+          <label class="text-sm font-semibold text-slate-300">Panjang Gelombang (λ)</label>
+          <span id="valWave" class="font-mono text-xs text-accent">20 nm</span>
+        </div>
+        <input type="range" id="sliderWave" min="10" max="40" value="20" class="custom-slider">
       </div>
 
-      <button id="btnPlay" class="w-full py-2.5 rounded-lg font-bold text-sm bg-emerald-500 hover:bg-emerald-400 text-slate-900 flex items-center justify-center gap-2 transition-all">
-        <i data-lucide="pause" class="w-4 h-4" id="playIcon"></i> <span id="playText">Jeda Animasi</span>
+      <div class="flex-grow"></div>
+
+      <button id="btnPlay" class="w-full py-3 rounded-lg font-bold text-sm bg-emerald-500 hover:bg-emerald-400 text-slate-900 flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20">
+        <i data-lucide="pause" class="w-5 h-5" id="iconPlay"></i> <span id="textPlay">Jeda Animasi</span>
       </button>
     </div>
 
-    <div class="card-glass p-4 rounded-xl lg:col-span-2 flex flex-col items-center">
+    <div class="glass-card p-4 lg:col-span-2 flex flex-col items-center justify-center relative">
       <canvas id="simCanvas" width="600" height="400"></canvas>
-      <p class="text-xs text-slate-400 mt-3 text-center">Sumber Cahaya &rarr; Celah Ganda &rarr; Layar Proyeksi</p>
+      <div class="flex justify-between w-full px-4 mt-3 text-xs font-mono text-slate-500">
+        <span>Sumber Cahaya</span>
+        <span>Penghalang Celah Ganda</span>
+        <span>Layar Detektor</span>
+      </div>
     </div>
 
-    <div class="card-glass p-5 rounded-xl lg:col-span-1 space-y-4">
-      <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2 mb-2">
-        <i data-lucide="lightbulb" class="w-4 h-4"></i> Penjelasan
-      </h3>
-      <p id="descText" class="text-xs text-slate-300 leading-relaxed">
-        Pada mode <strong>Gelombang</strong>, cahaya melewati kedua celah dan menciptakan pola interferensi. Puncak bertemu puncak saling menguatkan (terang), puncak bertemu lembah saling melemahkan (gelap).
-      </p>
-      <div class="mt-4 p-3 rounded-lg bg-sky-900/30 border border-sky-800">
-        <p class="text-xs text-sky-300 font-mono text-center">
+    <div class="glass-card p-5 lg:col-span-1 space-y-5 h-full">
+      <h2 class="text-lg font-bold text-white flex items-center gap-2 mb-2">
+        <i data-lucide="book-open" class="w-5 h-5 text-amber-400"></i> Penjelasan Singkat
+      </h2>
+      
+      <div class="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
+        <h3 class="text-sm font-bold text-accent mb-1" id="infoTitle">Pola Interferensi Gelombang</h3>
+        <p class="text-xs text-slate-300 leading-relaxed" id="infoText">
+          Cahaya yang melewati kedua celah akan menyebar dan saling tumpang tindih. Puncak gelombang yang bertemu puncak akan menghasilkan garis terang (interferensi konstruktif), sedangkan yang berlawanan menghasilkan garis gelap.
+        </p>
+      </div>
+
+      <div class="p-3 rounded-lg bg-emerald-900/20 border border-emerald-800/50">
+        <h3 class="text-sm font
